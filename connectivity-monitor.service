@@ -5,8 +5,8 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=pi
-ExecStart=/usr/bin/python3 /home/pi/connectivity_monitor/connectivity_monitor.py
+User=root
+ExecStart=/usr/bin/python3 /home/pi/internet-down-led-rpi/connectivity_monitor.py
 Restart=on-failure
 RestartSec=10
 StandardOutput=journal
