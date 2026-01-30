@@ -14,13 +14,16 @@ from signal import pause
 # ===== CONFIGURATION =====
 GPIO_PIN = 17                    # GPIO pin for LED (change if needed)
 PING_TARGET = "8.8.8.8"         # Google DNS - reliable server to ping
-PING_INTERVAL = 10              # Check connectivity every 10 seconds
+PING_INTERVAL = 3              # Check connectivity every 10 seconds
 CONSECUTIVE_FAILURES = 3        # Require 3 failed pings before marking as DOWN
 LOG_FILE = "/var/log/connectivity_monitor.log"
+DEBUG = True                     # Set to True for verbose output on every test
 
 # ===== LOGGING SETUP =====
+log_level = logging.DEBUG if DEBUG else logging.INFO
+
 logging.basicConfig(
-    level=logging.INFO,
+    level=log_level,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler(LOG_FILE),
@@ -66,12 +69,19 @@ def main():
     and controls LED based on status.
     """
     logger.info("Internet Connectivity Monitor started")
+    logger.info(f"Debug mode: {'ENABLED' if DEBUG else 'DISABLED'}")
     consecutive_failures = 0
     current_status = None  # Track previous status to avoid redundant logging
+    check_count = 0
     
     try:
         while True:
+            check_count += 1
             is_connected = check_internet_connectivity()
+            
+            if DEBUG:
+                status_symbol = "✓" if is_connected else "✗"
+                logger.debug(f"[Check #{check_count}] {status_symbol} Ping to {PING_TARGET}: {'SUCCESS' if is_connected else 'FAILED'} (consecutive_failures={consecutive_failures})")
             
             if is_connected:
                 consecutive_failures = 0
@@ -86,6 +96,8 @@ def main():
                         led.off()
                         logger.warning(f"✗ Internet DOWN ({consecutive_failures} consecutive failures) - LED OFF")
                         current_status = "DOWN"
+                elif DEBUG:
+                    logger.debug(f"[Check #{check_count}] Connection failed ({consecutive_failures}/{CONSECUTIVE_FAILURES} failures needed to mark DOWN)")
             
             time.sleep(PING_INTERVAL)
     

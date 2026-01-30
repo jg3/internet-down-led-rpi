@@ -1,0 +1,16 @@
+[Unit]
+Description=Internet Connectivity Monitor with LED Status
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+ExecStart=/usr/bin/python3 /home/pi/connectivity_monitor/connectivity_monitor.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
